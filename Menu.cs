@@ -31,7 +31,7 @@ public class Menu
                 {
                     case 0:
                         exit = true;
-                        Console.WriteLine("Exiting application...");
+                        ConsoleUtil.WriteLine("Exiting application...", ConsoleColor.Yellow);
                         break;
 
                     case 1:
@@ -59,13 +59,13 @@ public class Menu
                         break;
 
                     default:
-                        Console.WriteLine("Invalid operation!");
+                        ConsoleUtil.WriteLine("Invalid operation!", ConsoleColor.Red);
                         break;
                 }
             }
             catch (FormatException fe)
             {
-                Console.WriteLine("Invalid operation " + fe.Message);
+                ConsoleUtil.WriteLine($"Invalid operation {fe.Message}", ConsoleColor.Red);
             }
         }
     }
@@ -79,5 +79,6 @@ public class Menu
         Console.WriteLine("Enter 5 to Display all contacts");
         Console.WriteLine("Enter 6 to Delete contact");
         Console.WriteLine("Enter 0 to Exit");
+        Console.WriteLine();
     }
 }

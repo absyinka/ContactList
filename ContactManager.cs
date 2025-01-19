@@ -47,7 +47,8 @@ public class ContactManager : IContactManager
 
             if (contactAlreadyExist)
             {
-                Console.WriteLine($"Contact with {contactRequest.MobileNumber} already exist!");
+                ConsoleUtil.WriteLine($"Contact with {contactRequest.MobileNumber} already exist!", ConsoleColor.Red
+                );
                 return;
             }
 
@@ -62,12 +63,11 @@ public class ContactManager : IContactManager
             };
 
             Contacts.Add(contact);
-            Console.WriteLine($"Contact with name {contact.Name} and id {contact.Id} created successfully!");
-            Console.WriteLine();
+            ConsoleUtil.WriteLine($"Contact with name {contact.Name} and id {contact.Id} created successfully!", ConsoleColor.Green);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An error occured: " + ex.Message);
+            ConsoleUtil.WriteLine($"Exception: {ex.Message}", ConsoleColor.Red);
         }
 
     }
@@ -82,7 +82,7 @@ public class ContactManager : IContactManager
 
             if (contact is null)
             {
-                Console.WriteLine("Contact you are trying to delete does not exist!");
+                ConsoleUtil.WriteLine("Contact you are trying to delete does not exist!", ConsoleColor.Red);
                 return;
             }
 
@@ -92,12 +92,11 @@ public class ContactManager : IContactManager
                 ? "Contact removed successfully!"
                 : "Unable to remove contact!";
 
-            Console.WriteLine(result);
-            Console.WriteLine();
+            ConsoleUtil.WriteLine(result, ConsoleColor.Green);
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An error occured: " + ex.Message);
+            ConsoleUtil.WriteLine($"An error occured: {ex.Message}", ConsoleColor.Red);
         }
 
     }
@@ -106,7 +105,7 @@ public class ContactManager : IContactManager
     {
         if (Contacts.Count == 0)
         {
-            Console.WriteLine("There is no contact in the record yet!. Add a new contact");
+            ConsoleUtil.WriteLine("There is no contact in the record yet!. Add a new contact", ConsoleColor.Cyan);
             return;
         }
 
@@ -117,8 +116,8 @@ public class ContactManager : IContactManager
             table.AddRow(contact.Id, contact.Name, contact.MobileNumber, contact.Email, contact.CreatedAt.ToString("dd MMM, yyyy"), contact.ModifiedAt.HasValue ? contact.ModifiedAt?.ToString("dd MMM, yyyy h:mm:ss") : "N/A");
         }
 
+        Console.WriteLine();
         table.Write(Format.Alternative);
-
         Console.WriteLine();
     }
 
