@@ -1,3 +1,6 @@
+using System.Text.RegularExpressions;
+using ConsoleTables;
+
 namespace ContactList;
 
 public class ContactManager : IContactManager
@@ -9,49 +12,94 @@ public class ContactManager : IContactManager
         Contacts = [];
     }
 
-    public void AddContact(string name, string phoneNumber, string? email)
+    public Contact AddContactRequest()
     {
-        int id = Contacts.Count > 0 ? Contacts.Count + 1 : 1;
-        bool contactAlreadyExist = IsContactExist(phoneNumber);
+        Contact contact = new();
 
-        if (contactAlreadyExist)
+        Console.Write("Enter contact name: ");
+        contact.Name = Console.ReadLine()!;
+
+        Console.Write("Enter phone number: ");
+        contact.MobileNumber = Console.ReadLine()!;
+
+        Console.Write("Enter email: ");
+        contact.Email = Console.ReadLine();
+
+        int? contactType = Utility.SelectEnum("Select contact type:\nEnter 1 for Family\nEnter 2 for Friend\nEnter 3 for Work\nEnter any special or alphabet character to skip: ", 1, 3);
+
+        if (contactType.HasValue)
         {
-            Console.WriteLine($"Contact with {phoneNumber} already exist!");
-            return;
+            contact.Type = (ContactType)contactType;
         }
 
-        var contact = new Contact
-        {
-            Id = id,
-            Name = name,
-            MobileNumber = phoneNumber,
-            Email = email,
-            CreatedAt = DateTime.Now
-        };
-
-        Contacts.Add(contact);
-        Console.WriteLine($"Contact with name {contact.Name} and id {contact.Id} successfully created!");
-        Console.WriteLine();
+        return contact;
     }
 
-    public void DeleteContact(int id)
+    public void AddContact()
     {
-        var contact = Contacts.Find(x => x.Id == id);
-
-        if (contact is null)
+        try
         {
-            Console.WriteLine("Contact you are trying to delete does not exist!");
-            return;
+            int id = Contacts.Count > 0 ? Contacts.Count + 1 : 1;
+            var contactRequest = AddContactRequest();
+            ValidateContactName(contactRequest.Name);
+            ValidateContactPhoneNumber(contactRequest.MobileNumber);
+            bool contactAlreadyExist = IsContactExist(contactRequest.MobileNumber);
+
+            if (contactAlreadyExist)
+            {
+                Console.WriteLine($"Contact with {contactRequest.MobileNumber} already exist!");
+                return;
+            }
+
+            var contact = new Contact
+            {
+                Id = id,
+                Name = contactRequest.Name,
+                MobileNumber = contactRequest.MobileNumber,
+                Email = contactRequest.Email,
+                Type = contactRequest.Type,
+                CreatedAt = DateTime.Today
+            };
+
+            Contacts.Add(contact);
+            Console.WriteLine($"Contact with name {contact.Name} and id {contact.Id} created successfully!");
+            Console.WriteLine();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occured: " + ex.Message);
         }
 
-        bool isRemoved = Contacts.Remove(contact);
+    }
 
-        string result = isRemoved 
-            ? "Contact removed successfully!" 
-            : "Unable to remove contact!";
+    public void DeleteContact()
+    {
+        try
+        {
+            Console.Write("Enter the ID of contact: ");
+            int id = int.Parse(Console.ReadLine()!);
+            var contact = Contacts.Find(x => x.Id == id);
 
-        Console.WriteLine(result);
-        Console.WriteLine();
+            if (contact is null)
+            {
+                Console.WriteLine("Contact you are trying to delete does not exist!");
+                return;
+            }
+
+            bool isRemoved = Contacts.Remove(contact);
+
+            string result = isRemoved
+                ? "Contact removed successfully!"
+                : "Unable to remove contact!";
+
+            Console.WriteLine(result);
+            Console.WriteLine();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occured: " + ex.Message);
+        }
+
     }
 
     public void ListAllContacts()
@@ -62,18 +110,22 @@ public class ContactManager : IContactManager
             return;
         }
 
-        foreach(var contact in Contacts)
-        {
-            var contactData = $"Id: {contact.Id}\tName {contact.Name}\tPhone: {contact.MobileNumber}\tEmail: {contact.Email}\tCreated: {contact.CreatedAt}";
+        ConsoleTable table = new("ID", "Name", "Phone", "Email", "Created At", "Modified At");
 
-            Console.WriteLine(contactData);   
-        } 
+        foreach (var contact in Contacts)
+        {
+            table.AddRow(contact.Id, contact.Name, contact.MobileNumber, contact.Email, contact.CreatedAt.ToString("dd MMM, yyyy"), contact.ModifiedAt.HasValue ? contact.ModifiedAt?.ToString("dd MMM, yyyy h:mm:ss") : "N/A");
+        }
+
+        table.Write(Format.Alternative);
 
         Console.WriteLine();
     }
 
-    public void SearchContactById(int id) 
+    public void SearchContactById()
     {
+        Console.Write("Enter the ID of contact: ");
+        int id = int.Parse(Console.ReadLine()!);
         var contact = Contacts.Find(x => x.Id == id);
 
         if (contact is null)
@@ -89,15 +141,17 @@ public class ContactManager : IContactManager
         Email: {contact.Email ?? "N/A"}
         Alternate Mobile: {contact.AlternateMobileNumber ?? "N/A"}
         Work Number: {contact.WorkNumber ?? "N/A"}
-        Contact Type: {contact.ContactType}
+        Contact Type: {contact.Type}
         """;
 
         Console.WriteLine(result);
         Console.WriteLine();
     }
 
-    public void SearchContactByPhoneNumber(string mobileNumber)
+    public void SearchContactByPhoneNumber()
     {
+        Console.Write("Enter the phone number of contact: ");
+        string mobileNumber = Console.ReadLine()!;
         var contact = Contacts.Find(x => x.MobileNumber == mobileNumber);
 
         if (contact is null)
@@ -113,31 +167,82 @@ public class ContactManager : IContactManager
         Email: {contact.Email ?? "N/A"}
         Alternate Mobile: {contact.AlternateMobileNumber ?? "N/A"}
         Work Number: {contact.WorkNumber ?? "N/A"}
-        Contact Type: {contact.ContactType}
+        Contact Type: {contact.Type}
         """;
 
         Console.WriteLine(result);
     }
 
-    public void UpdateContact(int id, string name, string mobileNumber, string? email, string? alternatePhone, string? workPhone, ContactType? contactType)
+    public void UpdateContact()
     {
-        var contact = Contacts.Find(x => x.Id == id);
-
-        if (contact is null)
+        try
         {
-            Console.WriteLine("Contact you are trying to edit does not exist!");
-            return;
+            Console.Write("Enter the ID of contact: ");
+            int id = int.Parse(Console.ReadLine()!);
+
+            var contact = Contacts.Find(x => x.Id == id);
+
+            if (contact is null)
+            {
+                Console.WriteLine("Contact you are trying to edit does not exist!");
+                return;
+            }
+
+            bool isRecordUpdated = false;
+
+            Console.Write("Enter contact name: ");
+            string name = Console.ReadLine()!;
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                ValidateContactName(name);
+                contact.Name = name;
+                isRecordUpdated = true;
+            }
+
+            Console.Write("Enter phone number: ");
+            string mobileNumber = Console.ReadLine()!;
+
+            if (!string.IsNullOrWhiteSpace(mobileNumber))
+            {
+                ValidateContactPhoneNumber(mobileNumber);
+                contact.MobileNumber = mobileNumber;
+                isRecordUpdated = true;
+            }
+
+            Console.Write("Enter email: ");
+            string email = Console.ReadLine()!;
+
+            if (!string.IsNullOrWhiteSpace(email))
+            {
+                contact.Email = email;
+                isRecordUpdated = true;
+            }
+
+            int? updatedContactType = Utility.SelectEnum("Select contact type:\nEnter 1 for Family\nEnter 2 for Friend\nEnter 3 for Work\nEnter any special or alphabet character to skip: ", 1, 3);
+
+            if (updatedContactType.HasValue)
+            {
+                contact.Type = (ContactType)updatedContactType;
+                isRecordUpdated = true;
+            }
+
+            if (isRecordUpdated)
+            {
+                contact.ModifiedAt = DateTime.Now;
+                Console.WriteLine("Contact was updated successfully!");
+            }
+            else
+            {
+                Console.WriteLine("Contact unchanged");
+            }
+
+            Console.WriteLine();
         }
-
-        contact.Name = name;
-        contact.MobileNumber = mobileNumber;
-        contact.Email = email ?? null;
-        contact.AlternateMobileNumber = alternatePhone ?? null;
-        contact.WorkNumber = workPhone ?? null;
-        contact.ContactType = contactType ?? null;
-
-        Console.WriteLine("Contact was updated successfully!");
-        Console.WriteLine();
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occured: " + ex.Message);
+        }
     }
 
     private bool IsContactExist(string phoneNumber)
@@ -145,8 +250,38 @@ public class ContactManager : IContactManager
         return Contacts.Any(c => c.MobileNumber == phoneNumber);
     }
 
-    private bool IsContactExist(int id)
+    public bool IsContactExist(int id)
     {
         return Contacts.Any(c => c.Id == id);
+    }
+
+    static void ValidateContactName(string name)
+    {
+        string namePattern = @"^[a-zA-Z@]+(?: [a-zA-Z@]+)*$";
+
+        if (!Regex.IsMatch(name, namePattern))
+        {
+            throw new Exception("Contact name cannot contain special characters except single whitespace between each interval of word or character and @ character!");
+        }
+
+        if (name.Length < 3)
+        {
+            throw new Exception("Contact name must be at least three characters.");
+        }
+    }
+
+    static void ValidateContactPhoneNumber(string phoneNumber)
+    {
+        string phoneNumberPattern = @"^\d+$";
+
+        if (!Regex.IsMatch(phoneNumber, phoneNumberPattern))
+        {
+            throw new Exception("Phone number cannot contain special character(s)");
+        }
+
+        if (phoneNumber?.Length < 11 || phoneNumber?.Length > 11)
+        {
+            throw new Exception("Phone number cannot be less or greater than 11 digits");
+        }
     }
 }

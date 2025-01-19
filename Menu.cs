@@ -1,5 +1,3 @@
-using System;
-
 namespace ContactList;
 
 public class Menu
@@ -19,47 +17,37 @@ public class Menu
         {
             PrintContactMenu();
 
-            Console.Write("Enter option: ");
-            if (int.TryParse(Console.ReadLine(), out int option))
+            try
             {
+                Console.Write("Enter option: ");
+
+                if (!int.TryParse(Console.ReadLine(), out int option))
+                {
+                    Console.WriteLine("Invalid input. Please enter a valid number option.");
+                    continue;
+                }
+
                 switch (option)
                 {
                     case 0:
                         exit = true;
+                        Console.WriteLine("Exiting application...");
                         break;
 
                     case 1:
-                        Console.Write("Enter contact name: ");
-                        string name = Console.ReadLine()!;
-                        Console.Write("Enter phone number: ");
-                        string phoneNumber = Console.ReadLine()!;
-                        Console.Write("Enter email: ");
-                        string? email = Console.ReadLine();
-                        _contactManager.AddContact(name, phoneNumber, email);
+                        _contactManager.AddContact();
                         break;
 
                     case 2:
-                        Console.Write("Enter the ID of contact: ");
-                        int id = int.Parse(Console.ReadLine()!);
-                        _contactManager.SearchContactById(id);
+                        _contactManager.SearchContactById();
                         break;
 
                     case 3:
-                        Console.Write("Enter the phone number of contact: ");
-                        string number = Console.ReadLine()!;
-                        _contactManager.SearchContactByPhoneNumber(number);
+                        _contactManager.SearchContactByPhoneNumber();
                         break;
 
                     case 4:
-                        Console.Write("Enter the ID of contact: ");
-                        int updateId = int.Parse(Console.ReadLine()!);
-                        Console.Write("Enter contact name: ");
-                        string updatedName = Console.ReadLine()!;
-                        Console.Write("Enter phone number: ");
-                        string updatedPhoneNumber = Console.ReadLine()!;
-                        Console.Write("Enter email: ");
-                        string? updatedEmail = Console.ReadLine();
-                        _contactManager.UpdateContact(updateId, updatedName, updatedPhoneNumber, updatedEmail, null, null, null);
+                        _contactManager.UpdateContact();
                         break;
 
                     case 5:
@@ -67,15 +55,17 @@ public class Menu
                         break;
 
                     case 6:
-                        Console.Write("Enter the ID of contact: ");
-                        int deleteId = int.Parse(Console.ReadLine()!);
-                        _contactManager.DeleteContact(deleteId);
+                        _contactManager.DeleteContact();
                         break;
 
                     default:
                         Console.WriteLine("Invalid operation!");
                         break;
                 }
+            }
+            catch (FormatException fe)
+            {
+                Console.WriteLine("Invalid operation " + fe.Message);
             }
         }
     }

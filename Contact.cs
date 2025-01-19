@@ -7,5 +7,5 @@ public class Contact : BaseClass
     public string? AlternateMobileNumber { get; set; }
     public string? WorkNumber { get; set; }
     public string? Email { get; set; }
-    public ContactType? ContactType { get; set; }
+    public ContactType? Type { get; set; }
 }
